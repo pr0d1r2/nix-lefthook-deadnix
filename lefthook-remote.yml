@@ -1,0 +1,12 @@
+---
+pre-commit:
+  commands:
+    deadnix:
+      glob: "*.nix"
+      run: timeout ${LEFTHOOK_DEADNIX_TIMEOUT:-30} deadnix --fail {staged_files}
+
+pre-push:
+  commands:
+    deadnix:
+      glob: "*.nix"
+      run: timeout ${LEFTHOOK_DEADNIX_TIMEOUT:-30} deadnix --fail {push_files}
