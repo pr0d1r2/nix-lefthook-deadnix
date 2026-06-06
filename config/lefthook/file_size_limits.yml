@@ -1,0 +1,6 @@
+default: 8192
+extensions:
+  lock: 65536
+  nix: 8192
+  bats: 8192
+  yml: 8192
