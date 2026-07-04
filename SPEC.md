@@ -22,7 +22,7 @@ Lefthook-compatible [deadnix](https://github.com/astro/deadnix) wrapper. Filter 
 - I.remote: `lefthook-remote.yml` — consumers add as a lefthook remote; defines `pre-commit` + `pre-push` `deadnix` commands (`glob: "*.nix"`, run `lefthook-deadnix {staged_files}` / `{push_files}`)
 - I.flake: `packages.${system}.default` — the `lefthook-deadnix` pkg
 - I.devshell: `devShells.${system}.default` + `.#ci` — plain `mkShell`s; `ci` exports `BATS_LIB_PATH`, `default` additionally runs `dev.sh` as `shellHook`
-- I.ci: `.github/workflows/ci.yml` — linux + macos via `pr0d1r2/nix-lefthook-ci-action`; `.github/workflows/update-pins.yml` — daily `nixpkgs-lock` pin bump PR
+- I.ci: `.github/workflows/ci.yml` — linux + macos via `pr0d1r2/nix-lefthook-ci-action`
 
 ## §V Invariants
 
@@ -34,7 +34,7 @@ Lefthook-compatible [deadnix](https://github.com/astro/deadnix) wrapper. Filter 
 - V6: `LEFTHOOK_DEADNIX_TIMEOUT` bounds the hook; default `30`s applied via `timeout ${LEFTHOOK_DEADNIX_TIMEOUT:-30}`
 - V7: `packages.${system}.default` set on all four supported systems; built from `./lefthook-deadnix.sh` with `pkgs.deadnix` as the sole runtime input
 - V8: `flake.nix` has no `nix-dev-shell-agentic` input — devShells are plain `mkShell`; sibling lefthook wrappers enter the shell via 13 `flake = false` `-src` inputs, keeping the lock free of any flake dep-tree explosion
-- V9: This repo IS deadnix, so its own check uses the local `./lefthook-deadnix.sh`; the `-src` leaves cover the *other* remotes the CI shell must run (including `statix`), not a deadnix wrapper (C8)
+- V9: This repo IS deadnix, so its own `lefthook.yml` uses raw `deadnix --fail` (C8); the `-src` leaves cover the *other* remotes the CI shell must run (including `statix`), not a deadnix wrapper
 - V10: `dev.sh` exports `BATS_LIB_PATH` from the `@BATS_LIB_PATH@` placeholder and runs `lefthook install` when `.git/hooks/pre-commit` is absent
 - V11: CI runs lefthook pre-commit + pre-push on linux + macos via the shared ci-action
 - V12: No credentials, secrets, tokens, API keys, or private paths in any tracked file
@@ -58,6 +58,6 @@ Lefthook-compatible [deadnix](https://github.com/astro/deadnix) wrapper. Filter 
 | T10 | x | self-lint via raw `deadnix --fail` + `statix check` (circular-dep avoidance) | C8,V9 |
 | T11 | x | linter suite via lefthook remotes | V14 |
 | T12 | x | GitHub Actions CI: linux + macos via nix-lefthook-ci-action | V11,I.ci |
-| T13 | x | update-pins.yml: daily nixpkgs-lock bump PR | I.ci |
+| T13 | — | ~~update-pins.yml~~: dropped — pin refresh handled by loop | — |
 | T14 | x | config/lefthook/file_size_limits.yml: raise nix cap to 10240 | V15,C6 |
 | T15 | x | opensource audit: no credentials/local-paths/private-refs in any tracked file | V12,V13,C5 |
