@@ -20,11 +20,6 @@
       set-and-setting,
       ...
     }:
-    let
-      forAllSystems =
-        f: nixpkgs.lib.genAttrs supportedSystems (system: f nixpkgs.legacyPackages.${system});
-          batsWithLibs = batsWithLibsFor pkgs;
-    in
     set-and-setting.lib.mkConsumerFlake {
       inherit self nixpkgs set-and-setting;
       fragments = [
@@ -36,40 +31,11 @@
         "yaml"
       ];
       extraPackages = pkgs: {
-          default = pkgs.writeShellApplication {
-            name = "lefthook-deadnix";
-            runtimeInputs = [ pkgs.deadnix ];
-            text = builtins.readFile ./lefthook-deadnix.sh;
-          };
-        devShells = forAllSystems (
-          pkgs:
-          let
-            inherit (pkgs.stdenv.hostPlatform) system;
-            batsWithLibs = batsWithLibsFor pkgs;
-            ciCommon = [
-              self.packages.${system}.default
-              batsWithLibs
-              pkgs.bats
-              pkgs.coreutils
-              pkgs.deadnix
-              pkgs.git
-              pkgs.lefthook
-              pkgs.nix
-              pkgs.parallel
-            ]
-            ++ (lefthookWrappersFor pkgs);
-          in
-          {
-            ci = pkgs.mkShell {
-              BATS_LIB_PATH = "${batsWithLibs}/share/bats";
-            };
-            default = pkgs.mkShell {
-              shellHook = builtins.replaceStrings [ "@BATS_LIB_PATH@" ] [ "${batsWithLibs}" ] (
-                builtins.readFile ./dev.sh
-              );
-            };
-          }
-        );
+        default = pkgs.writeShellApplication {
+          name = "lefthook-deadnix";
+          runtimeInputs = [ pkgs.deadnix ];
+          text = builtins.readFile ./lefthook-deadnix.sh;
+        };
       };
       src = ./.;
     };
