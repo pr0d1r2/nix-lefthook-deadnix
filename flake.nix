@@ -20,8 +20,7 @@
       set-and-setting,
       ...
     }:
-    set-and-setting.lib.mkConsumerFlake {
-      inherit self nixpkgs set-and-setting;
+    let
       fragments = [
         "base"
         "nix"
@@ -30,13 +29,59 @@
         "markdown"
         "yaml"
       ];
-      extraPackages = pkgs: {
-        default = pkgs.writeShellApplication {
-          name = "lefthook-deadnix";
-          runtimeInputs = [ pkgs.deadnix ];
-          text = builtins.readFile ./lefthook-deadnix.sh;
+      consumer = set-and-setting.lib.mkConsumerFlake {
+        inherit self nixpkgs set-and-setting;
+        inherit fragments;
+        extraPackages = pkgs: {
+          default = pkgs.writeShellApplication {
+            name = "lefthook-deadnix";
+            runtimeInputs = [ pkgs.deadnix ];
+            text = builtins.readFile ./lefthook-deadnix.sh;
+          };
         };
+        src = ./.;
       };
-      src = ./.;
+      confirmFor =
+        pkgs:
+        let
+          materialization = set-and-setting.lib.materializationFor {
+            inherit pkgs fragments;
+          };
+          confirm = pkgs.writeShellApplication {
+            name = "confirm";
+            runtimeInputs = [
+              pkgs.coreutils
+              pkgs.diffutils
+              pkgs.findutils
+              pkgs.gawk
+              pkgs.git
+              pkgs.gnugrep
+            ]
+            ++ materialization.packages;
+            runtimeEnv = {
+              FRAGMENTS_DIR = "${set-and-setting}/setting/integrations/lefthook";
+              ASSEMBLE_SCRIPT = "${set-and-setting}/setting/lib/assemble-lefthook.sh";
+              DETECT_SCRIPT = "${set-and-setting}/setting/lib/detect-fragments.sh";
+              SETTING_SRC = "${self.packages.${pkgs.stdenv.hostPlatform.system}.setting}";
+              CONFIRM_SCRIPT = "${set-and-setting}/lib/confirm.sh";
+              CONFIRM_REV = set-and-setting.rev or "unknown";
+            };
+            text = builtins.readFile ./confirm.sh;
+          };
+        in
+        {
+          type = "app";
+          program = "${confirm}/bin/confirm";
+        };
+    in
+    consumer
+    // {
+      apps = nixpkgs.lib.mapAttrs (
+        system: apps:
+        apps
+        // {
+          confirm = confirmFor nixpkgs.legacyPackages.${system};
+        }
+      ) consumer.apps;
     };
 }
