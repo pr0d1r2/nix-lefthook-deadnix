@@ -7,12 +7,15 @@
   };
 
   inputs = {
-    nixpkgs-lock.url = "github:pr0d1r2/nixpkgs-lock";
-    nixpkgs.follows = "nixpkgs-lock/nixpkgs";
+    # Keep the pinned actionlint check compatible with sourceByRegex in
+    # nixpkgs 25.11 (the 26.05 API requires a list of regexes, while the
+    # shared check framework passes one regex).
+    nixpkgs.url = "github:NixOS/nixpkgs/b6018f87da91d19d0ab4cf979885689b469cdd41";
 
     set-and-setting = {
       url = "github:pr0d1r2/set-and-setting";
-      inputs.nixpkgs-lock.follows = "nixpkgs-lock";
+      inputs.nixpkgs-lock.follows = "nixpkgs";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
@@ -27,7 +30,6 @@
       inherit self nixpkgs set-and-setting;
       fragments = [
         "base"
-        "actions"
         "nix"
         "shell"
         "ascii"
@@ -44,6 +46,29 @@
       src = ./.;
     }
     // {
+      checks = nixpkgs.lib.recursiveUpdate
+        (set-and-setting.lib.mkConsumerFlake {
+          inherit self nixpkgs set-and-setting;
+          fragments = [ "base" "nix" "shell" "ascii" "markdown" "yaml" ];
+          extraPackages = pkgs: {
+            default = pkgs.writeShellApplication {
+              name = "lefthook-deadnix";
+              runtimeInputs = [ pkgs.deadnix ];
+              text = builtins.readFile ./lefthook-deadnix.sh;
+            };
+          };
+          src = ./.;
+        }).checks
+        (nixpkgs.lib.mapAttrs (
+        system: _:
+        {
+          actionlint = nixpkgs.legacyPackages.${system}.runCommand "actionlint-check" { nativeBuildInputs = [ nixpkgs.legacyPackages.${system}.actionlint ]; } ''
+            cd ${./.}
+            actionlint $(find .github/workflows -type f \( -name '*.yml' -o -name '*.yaml' \) -print)
+            touch $out
+          '';
+        }
+      ) (nixpkgs.lib.genAttrs [ "aarch64-darwin" "x86_64-darwin" "x86_64-linux" "aarch64-linux" ] (_: null)));
       apps =
         nixpkgs.lib.mapAttrs
           (
@@ -97,7 +122,6 @@
             inherit self nixpkgs set-and-setting;
             fragments = [
               "base"
-              "actions"
               "nix"
               "shell"
               "ascii"
