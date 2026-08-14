@@ -67,3 +67,4 @@ Lefthook-compatible [deadnix](https://github.com/astro/deadnix) wrapper. Filter 
 | id | date | cause | fix |
 | --- | --- | --- | --- |
 | B1 | 2026-08-14 | CI consumed the mutable `set-and-setting` guardrails workflow at `main`, allowing its materialization standard to drift from the revision pinned in `flake.lock` and causing `lefthook.yml` fidelity failures. | Pin the reusable workflow to the validated `set-and-setting` revision. |
+| B2 | 2026-08-14 | `flake.nix` was not formatted according to the repository's nixfmt check. | Apply nixfmt's canonical layout to the `checks` expression. |

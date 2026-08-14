@@ -46,29 +46,41 @@
       src = ./.;
     }
     // {
-      checks = nixpkgs.lib.recursiveUpdate
-        (set-and-setting.lib.mkConsumerFlake {
-          inherit self nixpkgs set-and-setting;
-          fragments = [ "base" "nix" "shell" "ascii" "markdown" "yaml" ];
-          extraPackages = pkgs: {
-            default = pkgs.writeShellApplication {
-              name = "lefthook-deadnix";
-              runtimeInputs = [ pkgs.deadnix ];
-              text = builtins.readFile ./lefthook-deadnix.sh;
+      checks =
+        nixpkgs.lib.recursiveUpdate
+          (set-and-setting.lib.mkConsumerFlake {
+            inherit self nixpkgs set-and-setting;
+            fragments = [
+              "base"
+              "nix"
+              "shell"
+              "ascii"
+              "markdown"
+              "yaml"
+            ];
+            extraPackages = pkgs: {
+              default = pkgs.writeShellApplication {
+                name = "lefthook-deadnix";
+                runtimeInputs = [ pkgs.deadnix ];
+                text = builtins.readFile ./lefthook-deadnix.sh;
+              };
             };
-          };
-          src = ./.;
-        }).checks
-        (nixpkgs.lib.mapAttrs (
-        system: _:
-        {
-          actionlint = nixpkgs.legacyPackages.${system}.runCommand "actionlint-check" { nativeBuildInputs = [ nixpkgs.legacyPackages.${system}.actionlint ]; } ''
-            cd ${./.}
-            actionlint $(find .github/workflows -type f \( -name '*.yml' -o -name '*.yaml' \) -print)
-            touch $out
-          '';
-        }
-      ) (nixpkgs.lib.genAttrs [ "aarch64-darwin" "x86_64-darwin" "x86_64-linux" "aarch64-linux" ] (_: null)));
+            src = ./.;
+          }).checks
+          (
+            nixpkgs.lib.mapAttrs
+              (system: _: {
+                actionlint =
+                  nixpkgs.legacyPackages.${system}.runCommand "actionlint-check"
+                    { nativeBuildInputs = [ nixpkgs.legacyPackages.${system}.actionlint ]; }
+                    ''
+                      cd ${./.}
+                      actionlint $(find .github/workflows -type f \( -name '*.yml' -o -name '*.yaml' \) -print)
+                      touch $out
+                    '';
+              })
+              (nixpkgs.lib.genAttrs [ "aarch64-darwin" "x86_64-darwin" "x86_64-linux" "aarch64-linux" ] (_: null))
+          );
       apps =
         nixpkgs.lib.mapAttrs
           (
