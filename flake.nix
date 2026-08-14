@@ -40,6 +40,13 @@
             text = builtins.readFile ./lefthook-deadnix.sh;
           };
           actionlint = pkgs.actionlint;
+          "lefthook-actionlint" = pkgs.writeShellApplication {
+            name = "lefthook-actionlint";
+            runtimeInputs = [ pkgs.actionlint ];
+            text = ''
+              actionlint "$@"
+            '';
+          };
       };
       src = ./.;
     }
@@ -73,6 +80,7 @@
                       pkgs.gawk
                       pkgs.git
                       pkgs.gnugrep
+                      self.packages.${system}.lefthook-actionlint
                     ]
                     ++ materialization.packages;
                     runtimeEnv = {
