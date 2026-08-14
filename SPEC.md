@@ -61,3 +61,9 @@ Lefthook-compatible [deadnix](https://github.com/astro/deadnix) wrapper. Filter 
 | T13 | — | ~~update-pins.yml~~: dropped — pin refresh handled by loop | — |
 | T14 | x | config/lefthook/file_size_limits.yml: raise nix cap to 10240 | V15,C6 |
 | T15 | x | opensource audit: no credentials/local-paths/private-refs in any tracked file | V12,V13,C5 |
+
+## §B Bugs
+
+| id | date | cause | fix |
+| --- | --- | --- | --- |
+| B1 | 2026-08-14 | CI consumed the mutable `set-and-setting` guardrails workflow at `main`, allowing its materialization standard to drift from the revision pinned in `flake.lock` and causing `lefthook.yml` fidelity failures. | Pin the reusable workflow to the validated `set-and-setting` revision. |

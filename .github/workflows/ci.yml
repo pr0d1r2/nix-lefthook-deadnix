@@ -9,4 +9,4 @@ name: CI
 
 jobs:
   guardrails:
-    uses: pr0d1r2/set-and-setting/.github/workflows/guardrails.yml@main
+    uses: pr0d1r2/set-and-setting/.github/workflows/guardrails.yml@acdfbc3b03ddf19722af4077ec854df9f9cd4e7d
