@@ -34,11 +34,16 @@
         "yaml"
       ];
       extraPackages = pkgs: {
-        default = pkgs.writeShellApplication {
-          name = "lefthook-deadnix";
-          runtimeInputs = [ pkgs.deadnix ];
-          text = builtins.readFile ./lefthook-deadnix.sh;
-        };
+          default = pkgs.writeShellApplication {
+            name = "lefthook-deadnix";
+            runtimeInputs = [ pkgs.deadnix ];
+            text = builtins.readFile ./lefthook-deadnix.sh;
+          };
+          actionlint = pkgs.writeShellApplication {
+            name = "lefthook-actionlint";
+            runtimeInputs = [ pkgs.actionlint ];
+            text = ''actionlint "$@"'';
+          };
       };
       src = ./.;
     }
@@ -106,6 +111,11 @@
                 name = "lefthook-deadnix";
                 runtimeInputs = [ pkgs.deadnix ];
                 text = builtins.readFile ./lefthook-deadnix.sh;
+              };
+              actionlint = pkgs.writeShellApplication {
+                name = "lefthook-actionlint";
+                runtimeInputs = [ pkgs.actionlint ];
+                text = ''actionlint "$@"'';
               };
             };
             src = ./.;
