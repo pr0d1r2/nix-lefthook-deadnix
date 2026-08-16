@@ -47,4 +47,3 @@ pre-push:
     yamllint:
       glob: "*.{yml,yaml}"
       run: timeout ${LEFTHOOK_YAMLLINT_TIMEOUT:-30} lefthook-yamllint {push_files}
-
